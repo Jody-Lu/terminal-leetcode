@@ -28,10 +28,18 @@ class ItemWidget(urwid.WidgetWrap):
 
     def keypress(self, size, key):
         key_map = {'j':"down", 'k':"up", 'h':"left", 'l':"right"}
-        if key in key_map:
-            return key_map[key]
-        else:
-            return key
+        return key_map[key] if key in key_map else key
+        """
+        if key == 'j':
+            return 'down'
+        if key == 'k':
+            return 'up'
+        if key == 'h':
+            return 'left'
+        if key == 'l':
+            return 'right'
+        return key
+        """
 
 class DetailView(object):
     def __init__(self, title, body):
@@ -114,6 +122,7 @@ class Terminal(object):
     def make_detailview(self, title, body):
         return DetailView(title=title, body=body).build()
 
+    # show problem list
     def make_listview(self, data):
         items = self.make_itemwidgets(data)
         header = urwid.AttrMap(urwid.Text(''), 'head')
@@ -151,6 +160,7 @@ class Terminal(object):
         data = self.leetcode.retrieve_home()
         self.home_view = self.make_listview(data)
         self.loop = urwid.MainLoop(self.home_view, palette, unhandled_input=self.keystroke)
+        #self.leetcode.retrieve_all_problems()
         self.view_stack.append(self.home_view)
         self.loop.run()
 

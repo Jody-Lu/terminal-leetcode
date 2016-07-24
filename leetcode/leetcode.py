@@ -43,13 +43,38 @@ class Leetcode(object):
         return self.items
 
     def retrieve_detail(self, item):
+        """
+        :item: QuizItem
+        If the problem is locked, it will fail to get the title & body
+        """
+        title = ""
+        body = ""
         text = retrieve(BASE_URL + item.url).encode('utf-8')
         bs = BeautifulSoup(text, 'html.parser')
-        title = bs.find('div', 'question-title').h3.text
-        body = bs.find('div', 'question-content').text.replace(chr(13), '')
+        tmp_title = bs.find('div', 'question-title')
+        if tmp_title: title = tmp_title.h3.text
+        #title = bs.find('div', 'question-title').h3.text
+        tmp_body = bs.find('div', 'question-content')
+        if tmp_body: body = tmp_body.text.replace(chr(13), '')
         return title, body
 
-# Retrieve URL 
+    def retrieve_all_problems(self):
+        """
+        :rtype: title_list, body_list
+        """
+        if not self.items: return None
+        title_list = []
+        body_list = []
+
+        for item in self.items:
+            title, body = self.retrieve_detail(item)
+            if title: title_list.append(title)
+            if body: body_list.append(body)
+
+        return title_list, body_list
+
+
+# Retrieve URL
 def retrieve(url):
     r = requests.get(url)
     # check http response
