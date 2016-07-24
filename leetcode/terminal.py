@@ -27,15 +27,11 @@ class ItemWidget(urwid.WidgetWrap):
         return self.sel and not self.data.lock
 
     def keypress(self, size, key):
-        if key == 'j':
-            return 'down'
-        if key == 'k':
-            return 'up'
-        if key == 'h':
-            return 'left'
-        if key == 'l':
-            return 'right'
-        return key
+        key_map = {'j':"down", 'k':"up", 'h':"left", 'l':"right"}
+        if key in key_map:
+            return key_map[key]
+        else:
+            return key
 
 class DetailView(object):
     def __init__(self, title, body):
@@ -114,6 +110,7 @@ class Terminal(object):
                                                ('relative', 100), 'bottom', None)
         return self.quit_confirm_view
 
+    # build the view in the teminal
     def make_detailview(self, title, body):
         return DetailView(title=title, body=body).build()
 
@@ -149,6 +146,7 @@ class Terminal(object):
             items.append(ItemWidget(item))
         return items
 
+    # add cache problems' data here
     def run(self):
         data = self.leetcode.retrieve_home()
         self.home_view = self.make_listview(data)
