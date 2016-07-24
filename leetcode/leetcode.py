@@ -21,12 +21,14 @@ class Leetcode(object):
         save_data_to_file(text, DATA_FILE)
         return self.parse_home(text)
 
+    # retrieve all problems as QuizItems
     def retrieve_home(self):
         if not os.path.exists(DATA_FILE):
             return self.hard_retrieve_home()
         text = load_data_from_file(DATA_FILE)
         return self.parse_home(text)
 
+    # parse the retrieving html file (text)
     def parse_home(self, text):
         bs = BeautifulSoup(text, 'html.parser')
         trs = bs.find_all('tr')
@@ -47,9 +49,10 @@ class Leetcode(object):
         body = bs.find('div', 'question-content').text.replace(chr(13), '')
         return title, body
 
-
+# Retrieve URL 
 def retrieve(url):
     r = requests.get(url)
+    # check http response
     if r.status_code != 200:
         return None
 
