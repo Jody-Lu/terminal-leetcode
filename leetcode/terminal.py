@@ -150,6 +150,7 @@ class Terminal(object):
     def make_itemwidgets(self, data):
         items = []
         title = QuizItem('#', 'Title', 'Url', 'Acceptance', 'Difficulty')
+        # append initial title
         items.append(ItemWidget(title, False))
         for item in data:
             items.append(ItemWidget(item))

@@ -2,16 +2,34 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from .model import QuizItem
+from threading import Thread, Lock
 
 BASE_URL = 'https://leetcode.com'
 HOME_URL = BASE_URL + '/problemset/algorithms'
 HOME = os.path.expanduser('~')
 CONFIG = os.path.join(HOME, '.config', 'leetcode')
 DATA_FILE = os.path.join(CONFIG, 'leetcode_home.txt')
+title_body = {}
+lock = Lock()
+
+class GetUrlThread(Thread):
+    def __init__(self, url):
+        self.url = url
+        super(GetUrlThread, self).__init__()
+
+    def run(self):
+        text = retrieve(self.url).encode('utf-8')
+        bs = BeautifulSoup(text, 'html.parser')
+        title = bs.find('div', 'question-title').h3.text
+        body = bs.find('div', 'question-content').text.replace(chr(13), '')
+        lock.acquire()
+        title_body[title] = body
+        lock.release()
 
 class Leetcode(object):
     def __init__(self):
         self.items = []
+        self.title_body = {}
 
     def __getitem__(self, i):
         return self.items[i]
@@ -47,32 +65,35 @@ class Leetcode(object):
         :item: QuizItem
         If the problem is locked, it will fail to get the title & body
         """
-        title = ""
-        body = ""
+        if item.lock: return "", ""
+
+        key_title = item.id + ". " +  item.title
+        if key_title in self.title_body:
+            return item.title, self.title_body[key_title]
+
         text = retrieve(BASE_URL + item.url).encode('utf-8')
         bs = BeautifulSoup(text, 'html.parser')
-        tmp_title = bs.find('div', 'question-title')
-        if tmp_title: title = tmp_title.h3.text
-        #title = bs.find('div', 'question-title').h3.text
-        tmp_body = bs.find('div', 'question-content')
-        if tmp_body: body = tmp_body.text.replace(chr(13), '')
+        title = bs.find('div', 'question-title').h3.text
+        body = bs.find('div', 'question-content').text.replace(chr(13), '')
+        self.title_body[title] = body
         return title, body
+
 
     def retrieve_all_problems(self):
         """
         :rtype: title_list, body_list
         """
         if not self.items: return None
-        title_list = []
-        body_list = []
 
+        threads = []
         for item in self.items:
-            title, body = self.retrieve_detail(item)
-            if title: title_list.append(title)
-            if body: body_list.append(body)
-
-        return title_list, body_list
-
+            if item.lock: continue
+            t = GetUrlThread(BASE_URL + item.url)
+            threads.append(t)
+            t.start()
+        for t in threads:
+            t.join()
+        self.title_body = title_body
 
 # Retrieve URL
 def retrieve(url):
