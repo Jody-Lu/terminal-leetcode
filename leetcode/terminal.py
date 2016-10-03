@@ -161,7 +161,7 @@ class Terminal(object):
         data = self.leetcode.retrieve_home()
         self.home_view = self.make_listview(data)
         self.loop = urwid.MainLoop(self.home_view, palette, unhandled_input=self.keystroke)
-        #self.leetcode.retrieve_all_problems()
+        self.leetcode.retrieve_all_problems()
         self.view_stack.append(self.home_view)
         self.loop.run()
 

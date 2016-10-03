@@ -2,7 +2,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from .model import QuizItem
-from threading import Thread, Lock
+from threading import Thread
 
 BASE_URL = 'https://leetcode.com'
 HOME_URL = BASE_URL + '/problemset/algorithms'
@@ -10,7 +10,6 @@ HOME = os.path.expanduser('~')
 CONFIG = os.path.join(HOME, '.config', 'leetcode')
 DATA_FILE = os.path.join(CONFIG, 'leetcode_home.txt')
 title_body = {}
-lock = Lock()
 
 class GetUrlThread(Thread):
     def __init__(self, url):
@@ -22,9 +21,7 @@ class GetUrlThread(Thread):
         bs = BeautifulSoup(text, 'html.parser')
         title = bs.find('div', 'question-title').h3.text
         body = bs.find('div', 'question-content').text.replace(chr(13), '')
-        lock.acquire()
         title_body[title] = body
-        lock.release()
 
 class Leetcode(object):
     def __init__(self):
@@ -86,7 +83,7 @@ class Leetcode(object):
         if not self.items: return None
 
         threads = []
-        for item in self.items:
+        for item in self.items[:100]:
             if item.lock: continue
             t = GetUrlThread(BASE_URL + item.url)
             threads.append(t)
